@@ -1,5 +1,5 @@
 {
-  "name": "jupyter_server",
+  "name": "ocean_jupyter_server",
   "private": true,
   "version": "1.0.0",
   "license": "BSD",
