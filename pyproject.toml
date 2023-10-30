@@ -3,7 +3,7 @@ requires = ["hatchling >=1.11"]
 build-backend = "hatchling.build"
 
 [project]
-name = "jupyter_server"
+name = "ocean_jupyter_server"
 dynamic = ["version"]
 readme = "README.md"
 license = { file = "LICENSE" }
