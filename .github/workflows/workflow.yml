@@ -29,8 +29,8 @@ jobs:
               with:
                   poetry-version: "1.5.1"
 
-            - name: poetry build
-              run: poetry build
+            - name: python build
+              run: python -m build .
               shell: bash
               
             - name: Publish package distributions to PyPI
