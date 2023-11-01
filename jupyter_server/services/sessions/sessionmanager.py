@@ -351,13 +351,16 @@ class SessionManager(LoggingConfigurable):
         # allow contents manager to specify kernels cwd
         if self.fut_kernel_id_dict is not None:
             if session_id in self.fut_kernel_id_dict:
+                print("hey!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 fut_kernel_id = self.fut_kernel_id_dict[session_id]
                 done, pending = await asyncio.wait({fut_kernel_id})
                 if fut_kernel_id in done:
+                    print("ho!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     kernel_id = await fut_kernel_id
                     self.fut_kernel_id_dict.pop(session_id)
                     return kernel_id
             else:
+                print("ha!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 kernel_path = await ensure_async(self.contents_manager.get_kernel_path(path=path))
                 kernel_env = self.get_kernel_env(path)
                 self.fut_kernel_id_dict[session_id] = asyncio.create_task(self.kernel_manager.start_kernel(
@@ -367,6 +370,7 @@ class SessionManager(LoggingConfigurable):
                 ))
             kernel_id = "waiting"
         else:
+            print("not!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             kernel_path = await ensure_async(self.contents_manager.get_kernel_path(path=path))
     
             kernel_env = self.get_kernel_env(path, name)
@@ -430,11 +434,10 @@ class SessionManager(LoggingConfigurable):
         session_id = kwargs["session_id"]
         if self.fut_kernel_id_dict is not None and session_id in self.fut_kernel_id_dict:
             model = {
-                "id": "waiting",
-                "session_id": session_id,
+                "id": session_id,
                 "name": "Waiting for kernel to start",
                 "last_activity": None,
-                "execution_state": "starting",
+                "execution_state": "waiting",
                 "connections": 0,
             }
         else:
