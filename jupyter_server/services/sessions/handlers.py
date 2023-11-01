@@ -47,6 +47,8 @@ class SessionRootHandler(SessionsAPIHandler):
         """Create a new session."""
         # (unless a session already exists for the named session)
         sm = self.session_manager
+        print("session manager type")
+        print(type(sm))
 
         model = self.get_json_body()
         if model is None:
