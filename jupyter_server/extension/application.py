@@ -176,9 +176,9 @@ class ExtensionApp(JupyterApp):
     def get_extension_package(cls):
         """Get an extension package."""
         parts = cls.__module__.split(".")
-        if cls.__module__ == "__main__":
+        #if cls.__module__ == "__main__":
             # handle direct launch of ExtensionApp module, eg `python -m jupyterlab.labapp`
-            parts = cls.app_name.lower().split(".")
+        #    parts = cls.app_name.lower().split(".")
 
         if is_namespace_package(parts[0]):
             # in this case the package name is `<namespace>.<package>`.
