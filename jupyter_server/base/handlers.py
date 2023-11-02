@@ -3,6 +3,7 @@
 # Distributed under the terms of the Modified BSD License.
 from __future__ import annotations
 
+import contextvars
 import functools
 import inspect
 import ipaddress
@@ -43,6 +44,7 @@ from jupyter_server.utils import (
 if TYPE_CHECKING:
     from jupyter_server.auth.identity import User
 
+_current_request_var: contextvars.ContextVar = contextvars.ContextVar("current_request")
 # -----------------------------------------------------------------------------
 # Top-level handlers
 # -----------------------------------------------------------------------------
@@ -68,6 +70,9 @@ def log():
 
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
+
+    def prepare(self):
+        _current_request_var.set(self.request)
 
     @property
     def base_url(self) -> str:
@@ -383,7 +388,7 @@ class JupyterHandler(AuthenticatedHandler):
             if origin and re.match(self.allow_origin_pat, origin):
                 self.set_header("Access-Control-Allow-Origin", origin)
         elif self.token_authenticated and "Access-Control-Allow-Origin" not in self.settings.get(
-            "headers", {}
+                "headers", {}
         ):
             # allow token-authenticated requests cross-origin by default.
             # only apply this exception if allow-origin has not been specified.
@@ -764,9 +769,9 @@ class APIHandler(JupyterHandler):
         """Update last_activity of API requests"""
         # record activity of authenticated requests
         if (
-            self._track_activity
-            and getattr(self, "_user_cache", None)
-            and self.get_argument("no_track_activity", None) is None
+                self._track_activity
+                and getattr(self, "_user_cache", None)
+                and self.get_argument("no_track_activity", None) is None
         ):
             self.settings["api_last_activity"] = utcnow()
 
@@ -802,18 +807,18 @@ class APIHandler(JupyterHandler):
             ","
         )
         if (
-            requested_headers
-            and any(h.strip().lower() == "authorization" for h in requested_headers)
-            and (
+                requested_headers
+                and any(h.strip().lower() == "authorization" for h in requested_headers)
+                and (
                 # FIXME: it would be even better to check specifically for token-auth,
                 # but there is currently no API for this.
                 self.login_available
-            )
-            and (
+        )
+                and (
                 self.allow_origin
                 or self.allow_origin_pat
                 or "Access-Control-Allow-Origin" in self.settings.get("headers", {})
-            )
+        )
         ):
             self.set_header("Access-Control-Allow-Origin", self.request.headers.get("Origin", ""))
 
@@ -947,7 +952,7 @@ class FileFindHandler(JupyterHandler, web.StaticFileHandler):
         super().set_headers()
         # disable browser caching, rely on 304 replies for savings
         if "v" not in self.request.arguments or any(
-            self.request.path.startswith(path) for path in self.no_cache_paths
+                self.request.path.startswith(path) for path in self.no_cache_paths
         ):
             self.set_header("Cache-Control", "no-cache")
 
@@ -1096,6 +1101,13 @@ class PrometheusMetricsHandler(JupyterHandler):
 
         self.set_header("Content-Type", prometheus_client.CONTENT_TYPE_LATEST)
         self.write(prometheus_client.generate_latest(prometheus_client.REGISTRY))
+
+
+def get_current_request():
+    """
+    Get :class:`tornado.httputil.HTTPServerRequest` that is currently being processed.
+    """
+    return _current_request_var.get(None)
 
 
 # -----------------------------------------------------------------------------
